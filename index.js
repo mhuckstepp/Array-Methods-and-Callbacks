@@ -5,6 +5,14 @@ import { fifaData } from "./fifa.js";
 /* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 Task 1: 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀
 Practice accessing data by console.log-ing the following pieces of data note, you may want to filter the data first 😉*/
 
+// console.log(
+//   fifaData.filter(
+//     (element) =>
+//       element["Home Team Initials"] == "ZAI" ||
+//       element["Away Team Initials"] == "ZAI"
+//   )
+// );
+
 //(a) Home Team name for 2014 world cup final
 
 const homeTeamFinal2014 = fifaData.filter(
@@ -73,7 +81,11 @@ Use the higher-order function getWinners to do the following:
 4. Returns the names of all winning countries in an array called `winners` */
 
 function getWinners(arr, cb) {
-  const winners = cb(arr).map((element) => element["Home Team Goals"] > element["Away Team Goals"] ? element["Home Team Name"] : element["Away Team Name"]);
+  const winners = cb(arr).map((element) =>
+    element["Home Team Goals"] > element["Away Team Goals"]
+      ? element["Home Team Name"]
+      : element["Away Team Name"]
+  );
   return winners;
 }
 
@@ -88,15 +100,16 @@ hint: the strings returned need to exactly match the string in step 4.
  */
 
 function getWinnersByYear(arr, cb1, cb2) {
-    const years = cb1(arr, getFinals);
-    // console.log(years);
-    const winnersArr = [];
-    years.forEach((element, index) =>  {
-        winnersArr.push(`In ${element}, ${cb2(arr, getFinals)[index]} won the world cup!`);
-    });
-    return(winnersArr);
+  const years = cb1(arr, getFinals);
+  // console.log(years);
+  const winnersArr = [];
+  years.forEach((element, index) => {
+    winnersArr.push(
+      `In ${element}, ${cb2(arr, getFinals)[index]} won the world cup!`
+    );
+  });
+  return winnersArr;
 }
-
 
 /* 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀 Task 6: 🚀🚀🚀🚀🚀🚀🚀🚀🚀🚀
 Use the higher order function getAverageGoals to do the following: 
@@ -109,12 +122,12 @@ Use the higher order function getAverageGoals to do the following:
 */
 
 function getAverageGoals(cb) {
-    const homeArr = cb.map((element)=> element["Home Team Goals"]);
-    const awayArr = cb.map((element)=> element["Away Team Goals"]);
-    const homeGoals = homeArr.reduce((total, amount) => total + amount);
-    const awayGoals = awayArr.reduce((total, amount) => total + amount);
-    const averGoals = ((homeGoals + awayGoals)/cb.length).toFixed(2);
-    return averGoals;
+  const homeArr = cb.map(
+    (element) => element["Home Team Goals"] + element["Away Team Goals"]
+  );
+  const homeGoals = homeArr.reduce((total, amount) => total + amount);
+  const averGoals = (homeGoals / cb.length).toFixed(2);
+  return averGoals;
 }
 
 // getAverageGoals(getFinals(fifaData));
@@ -129,26 +142,93 @@ Hint: use `.reduce` */
 
 function getCountryWins(data, initials) {
   const teamWin = data.filter((element) => {
-      return element["Home Team Initials"] == initials && element["Home Team Goals"] > element["Away Team Goals"] || element["Away Team Initials"] == initials && element.Stage == "Final";
-    })
-    console.log(teamWin);
+    return (
+      (element["Home Team Initials"] == initials &&
+        element["Home Team Goals"] > element["Away Team Goals"]) ||
+      (element["Away Team Initials"] == initials &&
+        element["Away Team Goals"] > element["Home Team Goals"])
+    );
+  });
+  return ` ${initials} has ${teamWin.length} World Cup Wins`;
 }
 
-getCountryWins(fifaData, "GER");
+// console.log(getCountryWins(fifaData, "GER"));
+// console.log(getCountryWins(fifaData, "ENG"));
+// console.log(getCountryWins(fifaData, "CRC"));
 
 /* 💪💪💪💪💪 Stretch 2: 💪💪💪💪💪 
 Write a function called getGoals() that accepts a parameter `data` and returns the team with the most goals score per appearance (average goals for) in the World Cup finals */
 
-function getGoals(/* code here */) {
-  /* code here */
+function getGoals(data) {
+  const finals = data.filter((element) => element.Stage != "Preliminary round");
+  const teams = finals.map((element) => element["Home Team Initials"]);
+  let uniqueTeams = teams.filter((c, index) => {
+    return teams.indexOf(c) === index;
+  });
+  let mostAverage = 0;
+  let bigTeam = "";
+  uniqueTeams.forEach(function (element) {
+    let goals = 0;
+    const matchList = finals.filter((game) => {
+      return (
+        game["Home Team Initials"] == element ||
+        game["Away Team Initials"] == element
+      );
+    });
+    matchList.forEach(function (game) {
+      if (game["Home Team Initials"] == element) {
+        goals += game["Home Team Goals"];
+      } else {
+        goals += game["Away Team Goals"];
+      }
+    });
+    let goalsAve = goals / matchList.length;
+    if (goalsAve > mostAverage) {
+      mostAverage = goalsAve.toFixed(2);
+      bigTeam = element;
+    }
+  });
+  return `${bigTeam} with ${mostAverage} per game!`;
 }
+
+console.log(getGoals(fifaData));
 
 /* 💪💪💪💪💪 Stretch 3: 💪💪💪💪💪
 Write a function called badDefense() that accepts a parameter `data` and calculates the team with the most goals scored against them per appearance (average goals against) in the World Cup finals */
 
-function badDefense(/* code here */) {
-  /* code here */
+function badDefense(data) {
+  const finals = data.filter((element) => element.Stage != "Preliminary round");
+  const teams = finals.map((element) => element["Home Team Initials"]);
+  let uniqueTeams = teams.filter((c, index) => {
+    return teams.indexOf(c) === index;
+  });
+  let mostAverage = 0;
+  let badTeam = "";
+  uniqueTeams.forEach(function (element) {
+    let goals = 0;
+    const matchList = finals.filter((game) => {
+      return (
+        game["Home Team Initials"] == element ||
+        game["Away Team Initials"] == element
+      );
+    });
+    matchList.forEach(function (game) {
+      if (game["Home Team Initials"] == element) {
+        goals += game["Away Team Goals"];
+      } else {
+        goals += game["Home Team Goals"];
+      }
+    });
+    let goalsAve = goals / matchList.length;
+    if (goalsAve > mostAverage) {
+      mostAverage = goalsAve.toFixed(2);
+      badTeam = element;
+    }
+  });
+  return `${badTeam} with ${mostAverage} per game!`;
 }
+
+console.log(badDefense(fifaData));
 
 /* If you still have time, use the space below to work on any stretch goals of your chosing as listed in the README file. */
 
